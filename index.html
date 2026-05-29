@@ -1,11 +1,393 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>ssost</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搜搜原声 SSOST - 影视音乐导航</title>
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", sans-serif;
+      transition: all 0.4s ease;
+    }
+
+    /* 日间模式：明亮通透风格 */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #e8edf2, #d4dce6);
+      --header-bg: rgba(255, 255, 255, 0.7);
+      --text-white: #2c3e50;
+      --text-gray: #596778;
+      --card-bg: #ffffff;
+      --card-text: #2d2d2d;
+      --card-desc: #777;
+      --hover-bg: #5c6bc0;
+      --hover-text: #FFFFFF;
+      /* 各栏目左侧独立配色 */
+      --line-1: #E57373;
+      --line-2: #64B5F6;
+      --line-3: #81C784;
+      --line-4: #BA68C8;
+    }
+
+    /* 夜间模式：深沉影院暗调 */
+    [data-theme="dark"] {
+      --bg-gradient: linear-gradient(135deg, #12121b, #1e1e2f);
+      --header-bg: rgba(0, 0, 0, 0.4);
+      --text-white: #e2e2e2;
+      --text-gray: #a0a0b8;
+      --card-bg: #27273a;
+      --card-text: #e8e8e8;
+      --card-desc: #b0b8c1;
+      --hover-bg: #42425C;
+      --hover-text: #FFFFFF;
+      /* 暗模式下栏目边线配色微调 */
+      --line-1: #EF9A9A;
+      --line-2: #90CAF9;
+      --line-3: #A5D6A7;
+      --line-4: #CE93D8;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--card-text);
+      padding-bottom: 60px; /* 给底部悬浮栏预留空间 */
+    }
+
+    /* 头部导航 */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(8px);
+      padding: 15px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 日夜切换按钮 */
+    .theme-btn {
+      background: transparent;
+      border: 1px solid var(--text-gray);
+      color: var(--text-white);
+      font-size: 18px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      outline: none;
+    }
+    .theme-btn:hover {
+      background: rgba(100,100,100,0.1);
+    }
+
+    /* 主内容区 */
+    .main {
+      padding: 40px 0;
+    }
+
+    .title {
+      text-align: center;
+      color: var(--text-white);
+      margin-bottom: 30px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-gray);
+      margin-bottom: 50px;
+      font-size: 16px;
+    }
+
+    /* 卡片网格 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    /* 导航卡片 基础样式 */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      text-decoration: none;
+      color: var(--card-text);
+      border-left: 6px solid transparent;
+      position: relative;
+    }
+    /* 每个卡片左侧不同色条 */
+    .card:nth-child(1) { border-left-color: var(--line-1); }
+    .card:nth-child(2) { border-left-color: var(--line-2); }
+    .card:nth-child(3) { border-left-color: var(--line-3); }
+    .card:nth-child(4) { border-left-color: var(--line-4); }
+
+    /* 卡片悬浮效果 */
+    .card:hover {
+      transform: translateY(-6px);
+      background: var(--hover-bg);
+      color: var(--hover-text);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    }
+
+    .card i {
+      font-size: 40px;
+      margin-bottom: 15px;
+      color: inherit;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--card-desc);
+    }
+    .card:hover p {
+      color: rgba(255,255,255,0.85);
+    }
+
+    /* 分类标题 */
+    .cat-title {
+      color: var(--text-white);
+      font-size: 22px;
+      margin: 30px 0 20px;
+      padding-left: 12px;
+      border-left: 6px solid var(--line-1);
+    }
+
+    /* 底部版权区域 */
+    footer {
+      background: rgba(0,0,0,0.1);
+      color: var(--text-gray);
+      text-align: center;
+      padding: 25px 20px;
+      margin-top: 20px;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    /* 固定悬浮底部公众号栏 */
+    .fixed-wx-bar {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 50px;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      z-index: 998;
+      cursor: pointer;
+    }
+    .fixed-wx-bar i {
+      margin-right: 6px;
+      color: #07C160;
+    }
+
+    /* 公众号弹窗 */
+    .wx-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .wx-modal-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      position: relative;
+    }
+    .wx-modal-box img {
+      max-width: 260px;
+      width: 100%;
+      display: block;
+    }
+    .wx-modal-box p {
+      margin-top: 10px;
+      color: #333;
+    }
+    .close-modal {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      background: #333;
+      color: #fff;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .title {
+        font-size: 24px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .wx-modal-box {
+        margin: 0 20px;
+      }
+      footer {
+        font-size: 13px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>ssost的个人主页</h1>
-    <h1>Hello ~</h1>
+  <!-- 头部 -->
+  <header>
+    <div class="container">
+      <div class="nav">
+        <!-- 站点名称 + 音乐类图标 -->
+        <div class="logo">
+          <i class="fas fa-music"></i> 搜搜原声 SSOST
+        </div>
+        <button class="theme-btn" id="themeToggle">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容 -->
+  <div class="main">
+    <div class="container">
+      <h1 class="title">影视音乐平台一键直达</h1>
+      <p class="subtitle">影视原声、预告片配乐、厂牌与艺人精选合集</p>
+
+      <h2 class="cat-title">🎵 音乐分类合集</h2>
+      <div class="grid">
+        <!-- 原声音乐 - 唱片图标 -->
+        <a href="page1.html" target="_blank" class="card">
+          <i class="fas fa-compact-disc"></i>
+          <h3>原声音乐 Soundtrack</h3>
+          <p>影视原声、电影配乐精选</p>
+        </a>
+        <!-- 预告片音乐 - 音符图标 -->
+        <a href="page2.html" target="_blank" class="card">
+          <i class="fas fa-music"></i>
+          <h3>预告片音乐 Trailer Music</h3>
+          <p>高燃预告配乐、史诗BGM</p>
+        </a>
+        <!-- 厂牌合集 - 专辑图标 -->
+        <a href="page3.html" target="_blank" class="card">
+          <i class="fas fa-record-vinyl"></i>
+          <h3>厂牌合集 Label Collection</h3>
+          <p>各大音乐厂牌作品汇总</p>
+        </a>
+        <!-- 艺人合集 - 耳机图标 -->
+        <a href="page4.html" target="_blank" class="card">
+          <i class="fas fa-headphones"></i>
+          <h3>艺人合集 Artist Collection</h3>
+          <p>知名音乐人、歌手作品合集</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部版权声明 -->
+  <footer>
+    <p>搜搜原声 SSOST © 2025</p>
+    <p>本站资源均来源网络及收藏，仅供会员交流学习，严禁用于商业用途，否则产生的一切后果将由您自己承担！请下载后24小时内删除，版权归发行方所有，本站不承担任何法律责任，如有侵权请联系站长删除。</p>
+    <p>联系邮箱：qcw163@gmail.com</p>
+  </footer>
+
+  <!-- 固定悬浮底部公众号栏 -->
+  <div class="fixed-wx-bar" id="openWx">
+    <i class="fab fa-weixin"></i> 关注我的微信公众号
+  </div>
+
+  <!-- 公众号弹窗 -->
+  <div class="wx-modal" id="wxModal">
+    <div class="wx-modal-box">
+      <div class="close-modal" id="closeModal">×</div>
+      <!-- 替换为你的公众号二维码链接 -->
+      <img src="https://picsum.photos/260/260" alt="微信公众号二维码">
+      <p>扫码关注公众号</p>
+    </div>
+  </div>
+
+  <script>
+    // 日夜主题切换
+    const toggleBtn = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    const icon = toggleBtn.querySelector('i');
+
+    if(localStorage.getItem('theme') === 'dark'){
+      html.setAttribute('data-theme','dark');
+      icon.className = 'fas fa-sun';
+    }
+
+    toggleBtn.addEventListener('click', ()=>{
+      if(html.getAttribute('data-theme') === 'dark'){
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme','light');
+        icon.className = 'fas fa-moon';
+      } else {
+        html.setAttribute('data-theme','dark');
+        localStorage.setItem('theme','dark');
+        icon.className = 'fas fa-sun';
+      }
+    })
+
+    // 公众号弹窗逻辑
+    const openWx = document.getElementById('openWx');
+    const wxModal = document.getElementById('wxModal');
+    const closeModal = document.getElementById('closeModal');
+
+    openWx.addEventListener('click', () => {
+      wxModal.style.display = 'flex';
+    });
+    closeModal.addEventListener('click', () => {
+      wxModal.style.display = 'none';
+    });
+    wxModal.addEventListener('click', (e) => {
+      if(e.target === wxModal) wxModal.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
